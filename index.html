@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>乌萨奇网页宠物</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="usagi-container">
+        <div id="usagi-pet" class="usagi-sprite">
+            <img id="usagi-image" src="images/stand_no_bg.png" alt="usagi" />
+        </div>
+        <div id="usagi-bubble" class="speech-bubble">
+            <span class="bubble-text"></span>
+        </div>
+        <div id="settings-card" class="settings-panel">
+            <div class="settings-header">除草证</div>
+            <div class="settings-content">
+                <button class="action-btn" data-action="sleep">😴 睡觉</button>
+                <button class="action-btn" data-action="butterfly">🦋 抓蝴蝶</button>
+                <button class="action-btn" data-action="walk">🚶 走路</button>
+                <button class="action-btn" data-action="jump">🦘 跳跃</button>
+                <button class="action-btn" data-action="greet">👋 打招呼</button>
+                <button class="action-btn" data-action="eat">🍽️ 吃早餐</button>
+                <button class="action-btn" data-action="time">⏰ 报时</button>
+                <button class="action-btn" data-action="reset">🔄 重置位置</button>
+            </div>
+        </div>
+        <button id="settings-toggle" class="settings-btn"><img src="images/settings_no_bg.png" alt="settings" class="settings-icon" /></button>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
