@@ -8,6 +8,7 @@
 </head>
 <body>
     <div id="usagi-container">
+        <div id="usagi-background"></div>
         <div id="usagi-pet" class="usagi-sprite">
             <img id="usagi-image" src="images/stand_no_bg.png" alt="usagi" />
         </div>
@@ -25,6 +26,16 @@
                 <button class="action-btn" data-action="eat">🍽️ 吃早餐</button>
                 <button class="action-btn" data-action="time">⏰ 报时</button>
                 <button class="action-btn" data-action="reset">🔄 重置位置</button>
+                <div class="background-panel">
+                    <div class="background-header">背景设置</div>
+                    <div class="background-controls">
+                        <input type="file" id="bg-upload" accept="image/*">
+                        <button class="bg-reset-btn" id="bg-reset">恢复默认</button>
+                    </div>
+                    <div class="background-list" id="bg-list"></div>
+                    <div class="background-preview"><img id="bg-preview" alt="preview" /></div>
+                    <button class="background-confirm-btn" id="bg-confirm">确定</button>
+                </div>
             </div>
         </div>
         <button id="settings-toggle" class="settings-btn"><img src="images/settings_no_bg.png" alt="settings" class="settings-icon" /></button>

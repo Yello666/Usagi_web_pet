@@ -58,11 +58,20 @@ class UsagiWebPet {
         this.settingsCard = document.getElementById('settings-card');
         this.settingsToggle = document.getElementById('settings-toggle');
         this.container = document.getElementById('usagi-container');
+        this.backgroundLayer = document.getElementById('usagi-background');
+        this.bgUpload = document.getElementById('bg-upload');
+        this.bgReset = document.getElementById('bg-reset');
+        this.bgList = document.getElementById('bg-list');
+        this.bgPreview = document.getElementById('bg-preview');
+        this.bgConfirm = document.getElementById('bg-confirm');
         if (this.image) {
             this.image.onerror = () => { this.image.src = 'images/stand_no_bg.png'; };
         }
         this.movementPausedUntil = 0;
         this.movementResumeTimeout = null;
+        this.backgrounds = [];
+        this.selectedBackground = null;
+        this.activeBackground = null;
     }
 
     setupEventListeners() {
@@ -87,6 +96,16 @@ class UsagiWebPet {
             });
         });
 
+        if (this.bgUpload) {
+            this.bgUpload.addEventListener('change', (e) => this.handleUploadBackground(e));
+        }
+        if (this.bgReset) {
+            this.bgReset.addEventListener('click', () => this.resetBackground());
+        }
+        if (this.bgConfirm) {
+            this.bgConfirm.addEventListener('click', () => this.confirmBackground());
+        }
+
         // 窗口大小改变事件
         window.addEventListener('resize', () => this.handleResize());
     }
@@ -95,6 +114,12 @@ class UsagiWebPet {
         this.bubbleSystem = new BubbleSystem(this.pet, this.bubble, this.bubbleText);
         this.boundaryDetector = new BoundaryDetector();
         this.interactionHandler = new InteractionHandler(this);
+        this.loadBackgrounds();
+        const saved = localStorage.getItem('usagi_active_background');
+        if (saved) {
+            this.activeBackground = saved;
+            this.applyBackground(saved);
+        }
     }
 
     // 掉落动画
@@ -439,6 +464,97 @@ class UsagiWebPet {
             this.settingsCard.classList.add('show');
             this.bubbleSystem.show('我是设置', 3000);
         }
+    }
+
+    loadBackgrounds() {
+        const uploadedRaw = localStorage.getItem('usagi_uploaded_backgrounds');
+        const uploaded = uploadedRaw ? JSON.parse(uploadedRaw) : [];
+        this.backgrounds = [];
+        fetch('images/background/index.json').then(r => r.ok ? r.json() : []).then(list => {
+            const builtin = Array.isArray(list) ? list : [];
+            const builtinItems = builtin.map(src => ({ type: 'builtin', src }));
+            this.backgrounds = builtinItems.concat(uploaded);
+            this.renderBackgroundList();
+        }).catch(() => {
+            this.backgrounds = uploaded;
+            this.renderBackgroundList();
+        });
+    }
+
+    renderBackgroundList() {
+        if (!this.bgList) return;
+        this.bgList.innerHTML = '';
+        this.backgrounds.forEach((bg, idx) => {
+            const item = document.createElement('div');
+            item.className = 'bg-thumb';
+            const img = document.createElement('img');
+            img.src = bg.src;
+            item.appendChild(img);
+            item.addEventListener('click', () => {
+                this.selectBackground(bg, item);
+            });
+            this.bgList.appendChild(item);
+        });
+    }
+
+    selectBackground(bg, el) {
+        this.selectedBackground = bg.src;
+        if (this.bgPreview) {
+            this.bgPreview.src = bg.src;
+        }
+        const items = this.bgList ? this.bgList.querySelectorAll('.bg-thumb') : [];
+        items.forEach(x => x.classList.remove('selected'));
+        if (el) el.classList.add('selected');
+        this.applyBackground(bg.src);
+    }
+
+    applyBackground(src) {
+        if (!this.backgroundLayer) return;
+        if (src) {
+            this.backgroundLayer.style.backgroundImage = `url(${src})`;
+        } else {
+            this.backgroundLayer.style.backgroundImage = '';
+        }
+    }
+
+    confirmBackground() {
+        if (this.selectedBackground) {
+            this.activeBackground = this.selectedBackground;
+            localStorage.setItem('usagi_active_background', this.selectedBackground);
+            this.applyBackground(this.selectedBackground);
+            if (this.settingsCard) {
+                this.settingsCard.classList.remove('show');
+            }
+        }
+    }
+
+    resetBackground() {
+        this.selectedBackground = null;
+        this.activeBackground = null;
+        localStorage.removeItem('usagi_active_background');
+        this.applyBackground('');
+        if (this.bgPreview) this.bgPreview.src = '';
+        const items = this.bgList ? this.bgList.querySelectorAll('.bg-thumb') : [];
+        items.forEach(x => x.classList.remove('selected'));
+    }
+
+    handleUploadBackground(e) {
+        const files = e.target.files;
+        if (!files || !files[0]) return;
+        const file = files[0];
+        const reader = new FileReader();
+        reader.onload = () => {
+            const src = reader.result;
+            const item = { type: 'uploaded', src };
+            const uploadedRaw = localStorage.getItem('usagi_uploaded_backgrounds');
+            const uploaded = uploadedRaw ? JSON.parse(uploadedRaw) : [];
+            uploaded.push(item);
+            localStorage.setItem('usagi_uploaded_backgrounds', JSON.stringify(uploaded));
+            this.backgrounds.push(item);
+            this.renderBackgroundList();
+            this.bgUpload.value = '';
+        };
+        reader.readAsDataURL(file);
     }
 
     // 行为调度器
